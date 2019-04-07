@@ -90,7 +90,6 @@ static int load_sections_bfd(bfd *abfd, s_binary **bin) {
 			goto fail;
 		}
 		(*bin)->sections[i - 1] = new_section(sec_type, size, bytes, vma, secname);
-		//memcpy(secname, (*bin)->sections[i - 1]->name, strlen(secname))
 		(*bin)->nbr_sections += 1;
 		i++;
 	}
@@ -302,9 +301,21 @@ clean_exit:
 
 s_section *_get_section_by_name(s_binary *self, char *name) 
 {
-	self = self;
-	name = name;
-	return NULL;
+	s_section *section = NULL;
+	uint32_t i, ret;
+
+	for (i = 0; i < self->nbr_sections; i++) {
+		ret = strncmp(name, self->sections[i]->name, strlen(self->sections[i]->name));
+		if (0 == ret) {
+			section = self->sections[i];
+			goto clean_exit;
+		}
+	}
+
+	fprintf(stderr, "Could not find section %s\n", name);	
+	
+clean_exit:
+	return section;
 }
 
 s_binary *new_binary(e_binary_type type, e_arch_type arch, uint32_t bits, uint64_t entry) 

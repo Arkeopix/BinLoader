@@ -7,7 +7,7 @@ NAME=		binloader
 
 CFLAGS+=	-W -Wall -Werror \
 			-ansi -pedantic -Wpointer-arith \
-			--std=c11 -g
+			--std=c11 -D_GNU_SOURCE -g
 
 LFLAGS+=	-lbfd
 

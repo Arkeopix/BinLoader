@@ -35,7 +35,7 @@ typedef enum e_section_type {
 } e_section_type ;
 
 typedef struct s_section {
-	bool (*contains)(struct s_section* self, uint64_t address);
+	bool (*contains)(struct s_section *self, uint64_t address);
 
 	char *name;
 	e_section_type type;
