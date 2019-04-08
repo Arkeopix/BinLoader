@@ -35,6 +35,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	printf("Loaded binary '%s' %s/%s (%u bits) entry@0x%016jx\n",
+		   bin->filename, bin->type_str, bin->arch_str, bin->bits, bin->entry);
 	if (0 != section_flag) {
 		printf("HexDump of section %s\n", section_name);
 		section = bin->get_section_by_name(bin, section_name);
@@ -52,22 +54,18 @@ int main(int argc, char *argv[])
 		}
 		printf(" \n");
 	} else {
-	
-		printf("Loaded binary '%s' %s/%s (%u bits) entry@0x%016jx\n",
-			   bin->filename, bin->type_str, bin->arch_str, bin->bits, bin->entry);
-
 		for (i = 0; i < bin->nbr_sections; i++) {
 			section = bin->sections[i];
 			printf(" 0x%016jx %-8ju %-20s %s\n",
-				   section->vma, section->size, section->name, section->type == SEC_TYPE_CODE ? "CODE" : "DATA");
+				   section->vma, section->size, section->name, (section->type & SEC_TYPE_CODE) ? "CODE" : "DATA");
 		}
 
 		if (bin->nbr_symbols > 0) {
 			printf("found symbol table\n");
 			for (i = 0; i < bin->nbr_symbols; i++) {
 				symbol = bin->symbols[i];
-				printf(" %-40s 0x%016jx %s\n",
-					   symbol->name, symbol->address, (symbol->type & SYM_TYPE_FUNC) ? "FUNC" : "");
+				printf(" %-40s 0x%016jx %s %s\n",
+					symbol->name, symbol->address, (symbol->type & SYM_TYPE_FUNC) ? "FUNC" : "DATA", (symbol->weak & 1) ? "WEAK" : "STRONG");
 			}
 		}
 

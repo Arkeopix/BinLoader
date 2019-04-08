@@ -4,26 +4,29 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/* Begin s_symbol struct definition */
-
 #define SYMTAB_UPPER_BOUND(BFD_H, DYN) \
 	bfd_get ## DYN ## symtab_upper_bound(BFD_H)
 
 #define SYMTAB_CANONICALIZE(BFD_H, SYMTAB, DYN) \
 	bfd_canonicalize ## DYN ## symtab(BFD_H, SYMTAB)
 
+
+/* Begin s_symbol struct definition */
+
 typedef enum e_symbol_type { 
 	SYM_TYPE_UKN = 0, 
-	SYM_TYPE_FUNC = 1
+	SYM_TYPE_FUNC = 1,
+	SYM_TYPE_DATA = 2
 } e_symbol_type;
 
 typedef struct s_symbol {
 	e_symbol_type type;
 	char *name;
 	uint64_t address;
+	int weak;
 } s_symbol;
 
-s_symbol *new_symbol(e_symbol_type type, const char *name, uint64_t address);
+s_symbol *new_symbol(e_symbol_type type, const char *name, uint64_t address, int weak);
 
 /* End s_symbol struct definition */
 

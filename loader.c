@@ -107,7 +107,6 @@ static int load_symbols_bfd(bfd *abfd, s_binary **bin, uint8_t dyn)
 	int ret = 0;
 	int64_t size_in_bytes, symbol_number;
 	asymbol **bfd_symtab;
-
 	bfd_symtab = NULL;
 
 	/* Get size of symbol table */
@@ -144,13 +143,23 @@ static int load_symbols_bfd(bfd *abfd, s_binary **bin, uint8_t dyn)
 		fprintf(stderr, "Could not allocate memory for symtab\n");
 		goto fail;
 	}
+
 	for (int i = 0, j = 1; i < symbol_number; i++) {
+		/* TODO: When i'l meet the case, overwrite weak symbols with strong one */
 		if (bfd_symtab[i]->flags & BSF_FUNCTION) {
 			/* Allocate memory for each pointer */
 			(*bin)->symbols = realloc((*bin)->symbols, j * sizeof(s_symbol *));
-			(*bin)->symbols[j - 1] = new_symbol(SYM_TYPE_FUNC, bfd_symtab[i]->name, bfd_asymbol_value(bfd_symtab[i]));
+			(*bin)->symbols[j - 1] = new_symbol(SYM_TYPE_FUNC, bfd_symtab[i]->name, bfd_asymbol_value(bfd_symtab[i]), (bfd_symtab[i]->flags & BSF_WEAK) ? 1 : 0);
 			(*bin)->nbr_symbols += 1;
 			j++;
+		} else if (bfd_symtab[i]->flags & BSF_GLOBAL || bfd_symtab[i]->flags & BSF_LOCAL) {
+			/* Allocate memory for each pointer */
+			(*bin)->symbols = realloc((*bin)->symbols, j * sizeof(s_symbol *));
+			(*bin)->symbols[j - 1] = new_symbol(SYM_TYPE_DATA, bfd_symtab[i]->name, bfd_asymbol_value(bfd_symtab[i]), (bfd_symtab[i]->flags & BSF_WEAK) ? 1 : 0);
+			(*bin)->nbr_symbols += 1;
+			j++;
+		} else {
+			printf("not covered symbol: %s\n", bfd_symtab[i]->name);
 		}
 	}
 	
@@ -238,7 +247,7 @@ clean_exit:
 	return ret;
 }
 
-s_symbol *new_symbol(e_symbol_type type, const char *name, uint64_t address) 
+s_symbol *new_symbol(e_symbol_type type, const char *name, uint64_t address, int weak) 
 {
 	s_symbol*symbol = NULL;
 	size_t len;
@@ -249,6 +258,10 @@ s_symbol *new_symbol(e_symbol_type type, const char *name, uint64_t address)
 		goto clean_exit;
 	}
 
+	if (weak == 1) {
+		printf("Found weak symbol: %s\n", name);
+	}
+	symbol->weak = weak;
 	symbol->address = address;
 	symbol->type = type;
 	len = strlen(name);
